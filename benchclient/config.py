@@ -7,9 +7,9 @@ import os
 
 """Environment variables for the command line interface."""
 # Access token for the command line interface
-ENV_ACCESS_TOKEN = 'RENATA_ACCESS_TOKEN'
+ENV_ACCESS_TOKEN = 'ROB_ACCESS_TOKEN'
 # Identifier of the default benchmark
-ENV_BENCHMARK = 'RENATA_BENCHMARK'
+ENV_BENCHMARK = 'ROB_BENCHMARK'
 
 
 def access_token():
