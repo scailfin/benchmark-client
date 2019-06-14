@@ -49,6 +49,54 @@ The ``benchmark show`` command shows the input parameters for the benchmark. For
     Parameters:
       Code file (file)
 
+The benchmark template file contains the declaration of the benchmark parameter and references to the parameter using the ``$[[code]]`` syntax.
+
+.. code-block:: yaml
+
+    workflow:
+        version: 0.3.0
+        inputs:
+          files:
+            - $[[code]]
+            - code/analyze.py
+            - data/sequences.txt
+          parameters:
+            codefile: code/predict.py
+            inputfile: data/sequences.txt
+            outputfile: results/predict.txt
+        workflow:
+          type: serial
+          specification:
+            steps:
+              - environment: 'python:3.7'
+                commands:
+                  - python code/predict.py
+                      --inputfile "${inputfile}"
+                      --outputfile "${outputfile}"
+                  - python code/analyze.py
+                      --inputfile "${outputfile}"
+                      --outputfile results/analytics.json
+        outputs:
+          files:
+           - results/predict.txt
+           - results/analytics.json
+    parameters:
+        - id: code
+          name: 'Code file'
+          datatype: file
+          as: code/predict.py
+    results:
+        file: results/analytics.json
+        schema:
+            - id: avg_diff
+              name: 'Deviation'
+              type: decimal
+              sortOrder: asc
+            - id: exact_match
+              name: 'Exact Predictions'
+              type: int
+              
+
 The repository provides three different implementations for the predictor:
 
 - `maxpredictor.py <https://github.com/scailfin/benchmark-client/blob/master/examples/predictor/code/maxpredictor.py>`_: The predicted output is the maximum of the seen values plus 1

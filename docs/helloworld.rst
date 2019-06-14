@@ -51,6 +51,64 @@ Use the ``benchmark show`` command to verify that the benchmark was created and 
       Input file (file)
       sleeptime (int)
 
+The benchmark workflow template file is shown below. The ``parameters`` section of the of the template contains the definitions of the  three workflow parameters. References to these parameters in the workflow specification are made using the ``$[[...]]`` syntax. The results section defines the three result values that are computed for each workflow run.
+
+.. code-block:: yaml
+
+    workflow:
+        version: 0.3.0
+        inputs:
+          files:
+            - code/analyze.py
+            - code/helloworld.py
+            - $[[names]]
+          parameters:
+            inputfile: $[[names]]
+            outputfile: results/greetings.txt
+            sleeptime: $[[sleeptime]]
+            greeting: $[[greeting]]
+        workflow:
+          type: serial
+          specification:
+            steps:
+              - environment: 'python:3.7'
+                commands:
+                  - python code/helloworld.py
+                      --inputfile "${inputfile}"
+                      --outputfile "${outputfile}"
+                      --sleeptime ${sleeptime}
+                      --greeting ${greeting}
+                  - python code/analyze.py
+                      --inputfile "${outputfile}"
+                      --outputfile results/analytics.json
+        outputs:
+          files:
+           - results/greetings.txt
+           - results/analytics.json
+    parameters:
+        - id: names
+          name: 'Input file'
+          datatype: file
+          as: data/names.txt
+        - id: sleeptime
+          datatype: int
+          defaultValue: 10
+        - id: greeting
+          datatype: string
+          defaultValue: 'Hello'
+    results:
+        file: results/analytics.json
+        schema:
+            - id: avg_count
+              name: 'Avg. Characters per Line'
+              type: decimal
+            - id: max_len
+              name: 'Max. Output Line Length'
+              type: decimal
+            - id: max_line
+              name: 'Longest Output Line'
+              type: string
+              required: False
 
 =================
 Run the Benchmark
@@ -71,7 +129,7 @@ Before running a benchmark the user has to be logged in. In the following we wil
     Input file (file): benchmark-client/examples/helloworld/data/names.txt
     sleeptime (integer) [default 10]: 1
 
-When we run the benchmark the system prompts the user to input values for each of the benchmark parameters. Here we accept the default value for the greeting phrase (type <return>), use the default names.txt file that is provided with as part of the repository, and use a sleeptime of 1 sec.
+When we run the benchmark the system prompts the user to input values for each of the benchmark parameters. Here we accept the default value for the greeting phrase (type <return>), use the default `names.txt <https://github.com/scailfin/benchmark-client/blob/master/examples/helloworld/data/names.txt>`_ file that is provided with as part of the repository, and use a sleeptime of 1 sec.
 
 Now it is **bob**'s turn. For **bob** we use the same input file but provide a longer greeting phrase.
 
@@ -102,7 +160,7 @@ To show the current leaderboard for a benchmark use the following command:
        2 | alice |                     11.0 |                    12.0 | Hello Alice!
 
 
-We then run the benchmark again for **alice** but use an input file with longer names this time. We still use the default greeting phrase but after this run **alice** is on top of the leaderboard.
+We then run the benchmark again for **alice** but use an input file that contains longer names this time (`long-names.txt <https://github.com/scailfin/benchmark-client/blob/master/examples/helloworld/data/long-names.txt>`_). We still use the default greeting phrase but after this run **alice** is on top of the leaderboard.
 
 .. code-block:: bash
 
