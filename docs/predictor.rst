@@ -6,7 +6,7 @@ Simple Number Predictor Demo
    :target: https://github.com/scailfin/benchmark-client/blob/master/LICENSE
 
 
-The **Simple Number Predictor Demo** is part of the *Reproducible Open Benchmarks for Data Analysis Platform (ROB)*. This aim is to show the a basic feature of the benchmark engine that allows users to provide their own implementation for individual workflow steps.
+The **Simple Number Predictor Demo** is part of the *Reproducible Open Benchmarks for Data Analysis Platform (ROB)*. The aim of this demo is to show the basic feature of the benchmark engine that allows users to provide their own implementation for individual workflow steps.
 
 
 ===============
@@ -45,7 +45,7 @@ The ``benchmark show`` command shows the input parameters for the benchmark. For
 
     Identifier  : f426b3eb
     Name        : Simple Number Predictor
-    
+
     Parameters:
       Code file (file)
 
@@ -95,7 +95,7 @@ The benchmark template file contains the declaration of the benchmark parameter 
             - id: exact_match
               name: 'Exact Predictions'
               type: int
-              
+
 
 The repository provides three different implementations for the predictor:
 
@@ -144,7 +144,7 @@ A look at the current leaderboard confirm that the *minpredictor* has superior r
     -----|-------|-----------|------------------
        1 | bob   |       2.2 |                 2
        2 | alice |       4.8 |                 0
-    
+
 
 **alice** then runs the benchmark again but this time using the *medianpredictor*. Looking at the leaderboard we see that the *medianpredictor* is the one that outperforms the other two.
 
@@ -169,4 +169,3 @@ A look at the current leaderboard confirm that the *minpredictor* has superior r
     -----|-------|-----------|------------------
        1 | alice |       1.2 |                 1
        2 | bob   |       2.2 |                 2
-    

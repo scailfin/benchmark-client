@@ -6,7 +6,7 @@ Hello World Benchmark Demo
    :target: https://github.com/scailfin/benchmark-client/blob/master/LICENSE
 
 
-The **Hello World Benchmark Demo** is part of the *Reproducible Open Benchmarks for Data Analysis Platform (ROB)*. This aim is to show the basic features of the benchmark engine and client.
+The **Hello World Benchmark Demo** is part of the *Reproducible Open Benchmarks for Data Analysis Platform (ROB)*. The aim of this demo is to show the basic features of the benchmark engine and client.
 
 
 ===============
