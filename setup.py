@@ -1,17 +1,32 @@
-from setuptools import setup
+# This file is part of the Reproducible Open Benchmarks for Data Analysis
+# Platform (ROB).
+#
+# Copyright (C) 2019 NYU.
+#
+# ROB is free software; you can redistribute it and/or modify it under the
+# terms of the MIT License; see LICENSE file for more details.
 
+import os
+import re
+
+from setuptools import setup, find_packages
+
+
+"""Required packages for install, test, docs, and tests."""
 
 install_requires=[
     'future',
     'Click',
-    'benchmark-templates'
+    'requests',
+    'rob-core>=0.1.0'
 ]
 
 
 tests_require = [
     'coverage>=4.0',
-    'coveralls',
-    'nose'
+    'pytest',
+    'pytest-cov',
+    'tox'
 ]
 
 
@@ -24,21 +39,52 @@ extras_require = {
 }
 
 
+# Get the version string from the version.py file in the robflask package. Based
+# on:
+# https://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+with open(os.path.join('robclient', 'version.py'), 'rt') as f:
+    filecontent = f.read()
+match = re.search(r"^__version__\s*=\s*['\"]([^'\"]*)['\"]", filecontent, re.M)
+if not match is None:
+    version = match.group(1)
+else:
+    raise RuntimeError('unable to find version string in %s.' % (filecontent,))
+
+
+# Get long project description text from the README.rst file
+with open('README.rst', 'rt') as f:
+    readme = f.read()
+
+
 setup(
-    name='benchmark-client',
-    version='0.1.0',
-    description='Client for Reproducible Benchmarks for Data Analysis Engine API',
+    name='rob-client',
+    version=version,
+    description='Reproducible Open Benchmarks - Command Line Interface',
+    long_description=readme,
+    long_description_content_type='text/x-rst',
     keywords='reproducibility benchmarks data analysis',
+    url='https://github.com/scailfin/rob-client',
+    author='Heiko Mueller',
+    author_email='heiko.muller@gmail.com',
     license='MIT',
-    packages=['benchclient'],
+    packages=find_packages(exclude=('tests',)),
     include_package_data=True,
-    entry_points={
-        'console_scripts': [
-            'rob = benchclient.cli.base:cli',
-        ]
-    },
-    test_suite='nose.collector',
     extras_require=extras_require,
     tests_require=tests_require,
-    install_requires=install_requires
+    install_requires=install_requires,
+    entry_points={
+        'console_scripts': [
+            'rob = robclient.cli.base:cli',
+        ]
+    },
+    classifiers=[
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python'
+    ]
 )

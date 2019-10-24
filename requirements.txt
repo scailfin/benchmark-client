@@ -1,3 +1,4 @@
 future
 Click
-benchmark-engine
+requests
+rob-core>=0.1.0
