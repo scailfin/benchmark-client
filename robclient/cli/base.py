@@ -14,6 +14,9 @@ import requests
 from robcore.view.route import UrlFactory, HEADER_TOKEN
 
 import robclient.cli.benchmark as benchmark
+import robclient.cli.files as file
+import robclient.cli.run as run
+import robclient.cli.submission as submission
 import robclient.cli.user as user
 import robclient.config as config
 
@@ -51,3 +54,9 @@ cli.add_command(user.reset_password)
 cli.add_command(user.whoami)
 # Benchmarks
 cli.add_command(benchmark.benchmarks)
+# Files
+cli.add_command(file.files)
+# Runs
+cli.add_command(run.runs)
+# Submissions
+cli.add_command(submission.submissions)

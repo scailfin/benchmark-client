@@ -1,3 +1,11 @@
+# This file is part of the Reproducible Open Benchmarks for Data Analysis
+# Platform (ROB).
+#
+# Copyright (C) 2019 NYU.
+#
+# ROB is free software; you can redistribute it and/or modify it under the
+# terms of the MIT License; see LICENSE file for more details.
+
 """Command line interface to interact with benchmarks."""
 
 import click
@@ -11,7 +19,7 @@ import robcore.model.template.parameter.declaration as pd
 import robcore.view.labels as labels
 
 
-@click.group(name='benchmark')
+@click.group(name='benchmarks')
 def benchmarks():
     """Add and remove benchmarks."""
     pass
@@ -21,10 +29,10 @@ def benchmarks():
 
 @click.command(name='show')
 @click.pass_context
-@click.option('-b', '--id', required=False, help='Default benchmark identifier')
-def get_benchmark(ctx, id):
+@click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
+def get_benchmark(ctx, benchmark):
     """Show benchmark information."""
-    b_id = config.BENCHMARK_ID(default_value=id)
+    b_id = config.BENCHMARK_ID(default_value=benchmark)
     if b_id is None:
         click.echo('no benchmark specified')
         return
@@ -71,7 +79,7 @@ def list_benchmarks(ctx):
 # -- Get benchmark leaderboard--------------------------------------------------
 
 @click.command(name='leaders')
-@click.option('-b', '--id', required=False, help='Default benchmark identifier')
+@click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
 @click.option(
     '-a', '--all',
     is_flag=True,
@@ -79,39 +87,42 @@ def list_benchmarks(ctx):
     help='Show all run results'
 )
 @click.pass_context
-def get_leaderboard(ctx, id, all):
+def get_leaderboard(ctx, benchmark, all):
     """Show benchmark leaderboard."""
-    b_id = config.benchmark_identifier(default_value=id)
+    b_id = config.BENCHMARK_ID(default_value=benchmark)
     if b_id is None:
         click.echo('no benchmark specified')
         return
+    url = ctx.obj['URLS'].get_leaderboard(b_id, include_all=all)
+    headers = ctx.obj['HEADERS']
     try:
-        engine = ctx.obj['ENGINE']
-        response = engine.benchmarks().get_leaderboard(b_id, all_entries=all)
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+        body = r.json()
         if ctx.obj['RAW']:
-            click.echo(json.dumps(response, indent=4))
+            click.echo(json.dumps(body, indent=4))
         else:
-            headline = ['Rank', 'User']
+            headline = ['Rank', 'Submission']
             types = [pd.DT_INTEGER, pd.DT_STRING]
-            for col in response[labels.SCHEMA]:
+            for col in body[labels.SCHEMA]:
                 headline.append(col[labels.NAME])
                 types.append(col[labels.DATA_TYPE])
             table = ResultTable(headline=headline, types=types)
             rank = 1
-            for run in response[labels.RUNS]:
-                row  = [str(rank), run[labels.USERNAME]]
+            for run in body[labels.RANKING]:
+                row  = [str(rank), run[labels.SUBMISSION][labels.NAME]]
                 result = dict()
                 for val in run[labels.RESULTS]:
                     result[val[labels.ID]] = val[labels.VALUE]
-                for col in response[labels.SCHEMA]:
+                for col in body[labels.SCHEMA]:
                     col_id = col[labels.ID]
                     row.append(str(result[col_id]))
                 table.add(row)
                 rank += 1
             for line in table.format():
                 click.echo(line)
-    except err.EngineError as ex:
-        click.echo(ex.message)
+    except (requests.ConnectionError, requests.HTTPError) as ex:
+        click.echo('{}'.format(ex))
 
 
 benchmarks.add_command(get_benchmark)

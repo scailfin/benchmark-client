@@ -20,6 +20,8 @@ from robcore.config.api import API_URL
 ROB_ACCESS_TOKEN = 'ROB_ACCESS_TOKEN'
 # Identifier of the default benchmark
 ROB_BENCHMARK = 'ROB_BENCHMARK'
+# Identifier of the default submission
+ROB_SUBMISSION = 'ROB_SUBMISSION'
 
 
 def ACCESS_TOKEN():
@@ -45,8 +47,23 @@ def BENCHMARK_ID(default_value=None):
     -------
     string
     """
-    benchmark = os.environ.get(ROB_BENCHMARK)
-    if benchmark is None:
+    benchmark_id = os.environ.get(ROB_BENCHMARK)
+    if benchmark_id is None:
         return default_value
     else:
-        return benchmark
+        return benchmark_id
+
+
+def SUBMISSION_ID(default_value=None):
+    """Short-cut to get the value for the default submission identifier from the
+    environment.
+
+    Returns
+    -------
+    string
+    """
+    submission_id = os.environ.get(ROB_SUBMISSION)
+    if submission_id is None:
+        return default_value
+    else:
+        return submission_id

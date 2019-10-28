@@ -55,7 +55,7 @@ class ResultTable(object):
         column_size = [0] * len(self.rows[0])
         for row in self.rows:
             for col in range(len(column_size)):
-                l = len(row[col])
+                l = len('{}'.format(row[col]))
                 if l > column_size[col]:
                     column_size[col] = l
         # Format all riws
