@@ -32,7 +32,8 @@ def submissions():
 @click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
 @click.option('-n', '--name', required=True, help='Submission name')
 @click.option('-m', '--members', required=False, help='Submission members')
-def create_submission(ctx, benchmark, name, members):
+@click.option('-p', '--parameters', required=False, help='Additional submission parameters')
+def create_submission(ctx, benchmark, name, members, parameters):
     """Create a new submission."""
     b_id = config.BENCHMARK_ID(default_value=benchmark)
     if b_id is None:
@@ -40,13 +41,14 @@ def create_submission(ctx, benchmark, name, members):
         return
     url = ctx.obj['URLS'].create_submission(benchmark_id=b_id)
     headers = ctx.obj['HEADERS']
-    member_list = None
+    data = {labels.NAME: name}
     if not members is None:
-        member_list = members.split(',')
-    data = {
-        labels.NAME: name,
-        labels.MEMBERS: member_list
-    }
+        data[labels.MEMBERS] = members.split(',')
+    if not parameters is None:
+        params = json.loads(parameters)
+        if not isinstance(params, list):
+            params = list(params)
+        data[labels.PARAMETERS] = params
     try:
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
