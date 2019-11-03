@@ -13,11 +13,13 @@ import json
 import requests
 
 from robclient.io import ResultTable
+from robcore.io.files import FileDescriptor
 
 import robclient.config as config
 import robcore.controller.run as fhlabels
 import robcore.model.template.parameter.declaration as pd
 import robcore.model.template.parameter.util as putil
+import robcore.util as util
 import robcore.view.labels as labels
 
 
@@ -124,9 +126,11 @@ def get_run(ctx, run):
         else:
             click.echo('ID: {}'.format(body[labels.ID]))
             if labels.STARTED_AT in body:
-                click.echo('Started at: {}'.format(body[labels.STARTED_AT]))
+                ts = util.to_localstr(text=body[labels.STARTED_AT])
+                click.echo('Started at: {}'.format(ts))
             if labels.FINISHED_AT in body:
-                click.echo('Finished at: {}'.format(body[labels.FINISHED_AT]))
+                ts = util.to_localstr(text=body[labels.FINISHED_AT])
+                click.echo('Finished at: {}'.format(ts))
             click.echo('State: {}'.format(body[labels.STATE]))
             # Get index of parameters. The index contains the parameter name
             # and type
@@ -189,11 +193,11 @@ def list_runs(ctx, submission):
             for r in body[labels.RUNS]:
                 run = list([r[labels.ID]])
                 if labels.STARTED_AT in r:
-                    run.append(r[labels.STARTED_AT])
+                    run.append(util.to_localstr(text=r[labels.STARTED_AT]))
                 else:
                     run.append('')
                 if labels.FINISHED_AT in r:
-                    run.append(r[labels.FINISHED_AT])
+                    run.append(util.to_localstr(text=r[labels.FINISHED_AT]))
                 else:
                     run.append('')
                 run.append(r[labels.STATE])
@@ -223,9 +227,21 @@ def start_run(ctx, submission):
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         body = r.json()
+        # Create list of file descriptors for uploaded files that are included
+        # in the submission handle
+        files = []
+        for fh in body[labels.FILES]:
+            files.append(
+                FileDescriptor(
+                    identifier=fh[labels.ID],
+                    name=fh[labels.NAME],
+                    created_at=util.to_datetime(fh[labels.CREATED_AT]))
+                )
+        # Create list of additional user-provided template parameters
         parameters = putil.create_parameter_index(body[labels.PARAMETERS])
         ps = sorted(parameters.values(), key=lambda p: (p.index, p.identifier))
-        arguments = putil.read(ps)
+        # Read values for all parameters
+        arguments = putil.read(ps, files=files)
         data = {labels.ARGUMENTS: []}
         for key in arguments:
             para = parameters[key]

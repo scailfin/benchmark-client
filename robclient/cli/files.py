@@ -16,6 +16,7 @@ from robclient.io import ResultTable
 
 import robclient.config as config
 import robcore.model.template.parameter.declaration as pd
+import robcore.util as util
 import robcore.view.labels as labels
 
 
@@ -115,7 +116,12 @@ def list_files(ctx, submission):
                 types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING, pd.DT_INTEGER]
             )
             for f in body[labels.FILES]:
-                table.add([f[labels.ID], f[labels.NAME], f[labels.CREATED_AT], f[labels.FILESIZE]])
+                table.add([
+                    f[labels.ID],
+                    f[labels.NAME],
+                    util.to_localstr(text=f[labels.CREATED_AT]),
+                    f[labels.FILESIZE]
+                ])
             for line in table.format():
                 click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
