@@ -34,7 +34,7 @@ def files():
 @click.option('-f', '--file', required=True, help='File identifier')
 def delete_file(ctx, submission, file):
     """Delete a previously uploaded file."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return
@@ -65,7 +65,7 @@ def delete_file(ctx, submission, file):
 )
 def download_file(ctx, submission, file, output):
     """Download a previously uploaded file."""
-    s_id = config.SUBMISSION_ID(default_value=id)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return
@@ -98,7 +98,7 @@ def download_file(ctx, submission, file, output):
 @click.option('-s', '--submission', required=False, help='Submission identifier')
 def list_files(ctx, submission):
     """List uploaded files for a submission."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return
@@ -141,7 +141,7 @@ def list_files(ctx, submission):
 )
 def upload_file(ctx, submission, input):
     """Upload a file for a submission."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return

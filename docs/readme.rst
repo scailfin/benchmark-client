@@ -1,12 +1,3 @@
-==================================================
-Reproducible Open Benchmarks - Command Line Client
-==================================================
-
-.. image:: https://img.shields.io/badge/License-MIT-yellow.svg
-   :target: https://github.com/scailfin/rob-client/blob/master/LICENSE
-
-
-
 About
 =====
 
@@ -35,13 +26,15 @@ The Reproducible Open Benchmarks platform is implemented in Python. We recommend
     source venv/bin/activate
 
 
-The ROB Client requires the ``robcore`` package as well as a `Web API Server <https://github.com/scailfin/rob-webapi-flask>`_. The following steps will install the ROB client and all required packages:
+The ROB Client requires the ``robcore`` package as well as a `Web API Server <https://github.com/scailfin/rob-webapi-flask>`_. The following steps will install all packages from the respective GitHub repositories (skip installation of the first two repositories if you have setup the Web API already):
 
 
 .. code-block:: bash
 
     git clone git@github.com:scailfin/rob-core.git
     pip install -e rob-core
+    git clone git@github.com:scailfin/rob-webapi-flask.git
+    pip install -e rob-webapi-flask
     git clone git@github.com:scailfin/rob-client.git
     pip install -e rob-client
 

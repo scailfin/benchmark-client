@@ -173,7 +173,7 @@ def get_run(ctx, run):
 @click.option('-s', '--submission', required=False, help='Submission identifier')
 def list_runs(ctx, submission):
     """List all submission runs."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return
@@ -217,7 +217,7 @@ def list_runs(ctx, submission):
 @click.option('-s', '--submission', required=False, help='Submission identifier')
 def start_run(ctx, submission):
     """Start new submission run."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return

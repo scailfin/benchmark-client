@@ -35,7 +35,7 @@ def submissions():
 @click.option('-p', '--parameters', required=False, help='Additional submission parameters')
 def create_submission(ctx, benchmark, name, members, parameters):
     """Create a new submission."""
-    b_id = config.BENCHMARK_ID(default_value=benchmark)
+    b_id = benchmark if benchmark else config.BENCHMARK_ID()
     if b_id is None:
         click.echo('no benchmark specified')
         return
@@ -69,7 +69,7 @@ def create_submission(ctx, benchmark, name, members, parameters):
 @click.option('-s', '--submission', required=False, help='Submission identifier')
 def delete_submission(ctx, submission):
     """Delete an existing submission."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return
@@ -93,7 +93,7 @@ def delete_submission(ctx, submission):
 @click.option('-s', '--submission', required=False, help='Submission identifier')
 def get_submission(ctx, submission):
     """Show submissions information."""
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return
@@ -153,7 +153,7 @@ def update_submission(ctx, submission, name, members):
     if name is None and members is None:
         click.echo('nothing to update')
         return
-    s_id = config.SUBMISSION_ID(default_value=submission)
+    s_id = submission if submission else config.SUBMISSION_ID()
     if s_id is None:
         click.echo('no submission specified')
         return

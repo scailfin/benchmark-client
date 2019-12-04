@@ -32,7 +32,7 @@ def benchmarks():
 @click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
 def get_benchmark(ctx, benchmark):
     """Show benchmark information."""
-    b_id = config.BENCHMARK_ID(default_value=benchmark)
+    b_id = benchmark if benchmark else config.BENCHMARK_ID()
     if b_id is None:
         click.echo('no benchmark specified')
         return
@@ -44,11 +44,16 @@ def get_benchmark(ctx, benchmark):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            table = ResultTable(['ID', 'Name', 'Description'], [pd.DT_STRING] * 3)
-            for b in body[labels.BENCHMARKS]:
-                table.add([b[labels.ID], b[labels.NAME], b[labels.DESCRIPTION]])
-            for line in table.format():
-                click.echo(line)
+            click.echo('{} ({})'.format(body[labels.NAME], body[labels.ID]))
+            if labels.DESCRIPTION in body:
+                click.echo('\n{}'.format(body[labels.DESCRIPTION]))
+            if labels.INSTRUCTIONS in body:
+                click.echo('\n{}'.format(body[labels.INSTRUCTIONS]))
+            click.echo('\nParameters:')
+            for p in body.get(labels.PARAMETERS, list()):
+                name = p[labels.NAME]
+                data_type = p[pd.LABEL_DATATYPE]
+                click.echo('  {} ({})'.format(name, data_type))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
@@ -89,7 +94,7 @@ def list_benchmarks(ctx):
 @click.pass_context
 def get_leaderboard(ctx, benchmark, all):
     """Show benchmark leaderboard."""
-    b_id = config.BENCHMARK_ID(default_value=benchmark)
+    b_id = benchmark if benchmark else config.BENCHMARK_ID()
     if b_id is None:
         click.echo('no benchmark specified')
         return

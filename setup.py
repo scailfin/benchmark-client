@@ -59,10 +59,10 @@ with open('README.rst', 'rt') as f:
 setup(
     name='rob-client',
     version=version,
-    description='Reproducible Open Benchmarks - Command Line Interface',
+    description='Reproducible Open Benchmarks - Command Line Client',
     long_description=readme,
     long_description_content_type='text/x-rst',
-    keywords='reproducibility benchmarks data analysis',
+    keywords='reproducibility benchmarks data-analysis',
     url='https://github.com/scailfin/rob-client',
     author='Heiko Mueller',
     author_email='heiko.muller@gmail.com',
