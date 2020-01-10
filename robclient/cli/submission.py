@@ -16,6 +16,7 @@ from robclient.io import ResultTable
 
 import robclient.config as config
 import robcore.model.template.parameter.declaration as pd
+import robcore.util as util
 import robcore.view.labels as labels
 
 
@@ -32,7 +33,12 @@ def submissions():
 @click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
 @click.option('-n', '--name', required=True, help='Submission name')
 @click.option('-m', '--members', required=False, help='Submission members')
-@click.option('-p', '--parameters', required=False, help='Additional submission parameters')
+@click.option(
+    '-p', '--parameters',
+    required=False,
+    type=click.Path(exists=True, readable=True),
+    help='Additional submission parameters'
+)
 def create_submission(ctx, benchmark, name, members, parameters):
     """Create a new submission."""
     b_id = benchmark if benchmark else config.BENCHMARK_ID()
@@ -45,7 +51,7 @@ def create_submission(ctx, benchmark, name, members, parameters):
     if not members is None:
         data[labels.MEMBERS] = members.split(',')
     if not parameters is None:
-        params = json.loads(parameters)
+        params = util.read_object(parameters)
         if not isinstance(params, list):
             params = list(params)
         data[labels.PARAMETERS] = params
