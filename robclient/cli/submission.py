@@ -63,7 +63,7 @@ def create_submission(ctx, benchmark, name, members, parameters):
             click.echo(json.dumps(body, indent=4))
         else:
             s_id = body[labels.ID]
-            click.echo('Submission \'{}\' created with ID {}.'.format(name, s_id))
+            click.echo('export {}={}'.format(config.ROB_SUBMISSION, s_id))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
