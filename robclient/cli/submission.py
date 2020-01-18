@@ -16,7 +16,7 @@ from robclient.io import ResultTable
 
 import robclient.config as config
 import robcore.model.template.parameter.declaration as pd
-import robcore.util as util
+import robcore.core.util as util
 import robcore.view.labels as labels
 
 
@@ -26,7 +26,7 @@ def submissions():
     pass
 
 
-# -- Create new submission -----------------------------------------------------
+# -- Create new submission ----------------------------------------------------
 
 @click.command(name='create')
 @click.pass_context
@@ -48,9 +48,9 @@ def create_submission(ctx, benchmark, name, members, parameters):
     url = ctx.obj['URLS'].create_submission(benchmark_id=b_id)
     headers = ctx.obj['HEADERS']
     data = {labels.NAME: name}
-    if not members is None:
+    if members is not None:
         data[labels.MEMBERS] = members.split(',')
-    if not parameters is None:
+    if parameters is not None:
         params = util.read_object(parameters)
         if not isinstance(params, list):
             params = list(params)
@@ -68,11 +68,15 @@ def create_submission(ctx, benchmark, name, members, parameters):
         click.echo('{}'.format(ex))
 
 
-# -- Delete submission ---------------------------------------------------------
+# -- Delete submission --------------------------------------------------------
 
 @click.command(name='delete')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def delete_submission(ctx, submission):
     """Delete an existing submission."""
     s_id = submission if submission else config.SUBMISSION_ID()
@@ -92,11 +96,15 @@ def delete_submission(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- Get submission ------------------------------------------------------------
+# -- Get submission -----------------------------------------------------------
 
 @click.command(name='show')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def get_submission(ctx, submission):
     """Show submissions information."""
     s_id = submission if submission else config.SUBMISSION_ID()
@@ -122,14 +130,16 @@ def get_submission(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- List submissions ----------------------------------------------------------
+# -- List submissions ---------------------------------------------------------
 
 @click.command(name='list')
 @click.pass_context
-@click.option('-b', '--submission', required=False, help='Benchmark identifier')
-def list_submissions(ctx, submission):
+@click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
+def list_submissions(ctx, benchmark):
     """Show submissions for a benchmark or user."""
-    url = ctx.obj['URLS'].list_submissions(benchmark_id=submission)
+    url = ctx.obj['URLS'].list_submissions(
+        benchmark_id=config.BENCHMARK_ID(default_value=benchmark)
+    )
     headers = ctx.obj['HEADERS']
     try:
         r = requests.get(url, headers=headers)
@@ -147,11 +157,15 @@ def list_submissions(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- Update submission ---------------------------------------------------------
+# -- Update submission --------------------------------------------------------
 
 @click.command(name='update')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option('-n', '--name', required=False, help='Submission name')
 @click.option('-m', '--members', required=False, help='Submission members')
 def update_submission(ctx, submission, name, members):
@@ -166,10 +180,9 @@ def update_submission(ctx, submission, name, members):
     url = ctx.obj['URLS'].update_submission(submission_id=s_id)
     headers = ctx.obj['HEADERS']
     data = dict()
-    if not name is None:
+    if name is not None:
         data[labels.NAME] = name
-    member_list = None
-    if not members is None:
+    if members is not None:
         data[labels.MEMBERS] = members.split(',')
     try:
         r = requests.put(url, json=data, headers=headers)

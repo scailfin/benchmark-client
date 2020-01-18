@@ -17,8 +17,8 @@ class ResultTable(object):
     """
     def __init__(self, headline, types):
         """Initialize the list of column names and the list of column types.
-        Column type identifier are the same as those used fpr template parameter
-        declarations. Both lists are expected to be of same length.
+        Column type identifier are the same as those used fpr template
+        parameter declarations. Both lists are expected to be of same length.
 
         Parameters
         ----------
@@ -114,3 +114,13 @@ def format_row(row, column_size, types):
         line += ' | '
         line += '{val: {align}{width}}'.format(val=row[i], align=align(types[i]), width=column_size[i])
     return line
+
+
+def save_file(response, filename):
+    """Write the file contents in the response to the specified path. This code
+    is based on:
+    https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
+    """
+    with open(filename, 'wb') as local_file:
+        for chunk in response.iter_content(chunk_size=128):
+            local_file.write(chunk)

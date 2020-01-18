@@ -12,7 +12,7 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.io import ResultTable, save_file
 
 import robclient.config as config
 import robcore.model.template.parameter.declaration as pd
@@ -25,7 +25,47 @@ def benchmarks():
     pass
 
 
-# -- Get benchmark handle ------------------------------------------------------
+# -- Download resource file(s) ------------------------------------------------
+
+@click.command(name='download')
+@click.pass_context
+@click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
+@click.option('-f', '--resource', help='Resource identifier')
+@click.option(
+    '-o', '--output',
+    type=click.Path(writable=True),
+    required=False,
+    help='Save as ...'
+)
+def download_resource(ctx, benchmark, resource, output):
+    """Download a run resource file."""
+    b_id = benchmark if benchmark else config.BENCHMARK_ID()
+    if resource is not None:
+        url = ctx.obj['URLS'].download_benchmark_resource(
+            benchmark_id=b_id,
+            resource_id=resource
+        )
+    else:
+        url = ctx.obj['URLS'].download_benchmark_archive(benchmark_id=b_id)
+    headers = ctx.obj['HEADERS']
+    try:
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+        content = r.headers['Content-Disposition']
+        if output is not None:
+            filename = output
+        elif 'filename=' in content:
+            filename = content[content.find('filename='):].split('=')[1]
+        else:
+            click.echo('not output filename found')
+            return
+        # Write the file contents in the response to the specified path
+        save_file(r, filename)
+    except (requests.ConnectionError, requests.HTTPError) as ex:
+        click.echo('{}'.format(ex))
+
+
+# -- Get benchmark handle -----------------------------------------------------
 
 @click.command(name='show')
 @click.pass_context
@@ -58,7 +98,7 @@ def get_benchmark(ctx, benchmark):
         click.echo('{}'.format(ex))
 
 
-# -- List benchmarks -----------------------------------------------------------
+# -- List benchmarks ----------------------------------------------------------
 
 @click.command(name='list')
 @click.pass_context
@@ -72,16 +112,23 @@ def list_benchmarks(ctx):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            table = ResultTable(['ID', 'Name', 'Description'], [pd.DT_STRING] * 3)
+            table = ResultTable(
+                headline=['ID', 'Name', 'Description'],
+                types=[pd.DT_STRING] * 3
+            )
             for b in body[labels.BENCHMARKS]:
-                table.add([b[labels.ID], b[labels.NAME], b[labels.DESCRIPTION]])
+                table.add([
+                    b[labels.ID],
+                    b[labels.NAME],
+                    b[labels.DESCRIPTION]
+                ])
             for line in table.format():
                 click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
 
-# -- Get benchmark leaderboard--------------------------------------------------
+# -- Get benchmark leaderboard-------------------------------------------------
 
 @click.command(name='leaders')
 @click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
@@ -115,7 +162,7 @@ def get_leaderboard(ctx, benchmark, all):
             table = ResultTable(headline=headline, types=types)
             rank = 1
             for run in body[labels.RANKING]:
-                row  = [str(rank), run[labels.SUBMISSION][labels.NAME]]
+                row = [str(rank), run[labels.SUBMISSION][labels.NAME]]
                 result = dict()
                 for val in run[labels.RESULTS]:
                     result[val[labels.ID]] = val[labels.VALUE]
@@ -130,6 +177,7 @@ def get_leaderboard(ctx, benchmark, all):
         click.echo('{}'.format(ex))
 
 
+benchmarks.add_command(download_resource)
 benchmarks.add_command(get_benchmark)
 benchmarks.add_command(list_benchmarks)
 benchmarks.add_command(get_leaderboard)

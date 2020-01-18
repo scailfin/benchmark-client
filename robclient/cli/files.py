@@ -16,7 +16,7 @@ from robclient.io import ResultTable
 
 import robclient.config as config
 import robcore.model.template.parameter.declaration as pd
-import robcore.util as util
+import robcore.core.util as util
 import robcore.view.labels as labels
 
 

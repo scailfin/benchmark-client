@@ -12,14 +12,14 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
-from robcore.io.files import FileDescriptor
+from robclient.io import ResultTable, save_file
+from robcore.core.files import FileDescriptor
 
 import robclient.config as config
 import robcore.controller.run as fhlabels
 import robcore.model.template.parameter.declaration as pd
 import robcore.model.template.parameter.util as putil
-import robcore.util as util
+import robcore.core.util as util
 import robcore.view.labels as labels
 
 
@@ -29,7 +29,7 @@ def runs():
     pass
 
 
-# -- Cancel run ----------------------------------------------------------------
+# -- Cancel run ---------------------------------------------------------------
 
 @click.command(name='cancel')
 @click.pass_context
@@ -53,7 +53,7 @@ def cancel_run(ctx, run):
         click.echo('{}'.format(ex))
 
 
-# -- Delete run ----------------------------------------------------------------
+# -- Delete run ---------------------------------------------------------------
 
 @click.command(name='delete')
 @click.pass_context
@@ -72,12 +72,12 @@ def delete_run(ctx, run):
         click.echo('{}'.format(ex))
 
 
-# -- Download resource file ----------------------------------------------------
+# -- Download resource file(s) ------------------------------------------------
 
 @click.command(name='download')
 @click.pass_context
 @click.option('-r', '--run', required=True, help='Run identifier')
-@click.option('-f', '--resource', required=True, help='Resource identifier')
+@click.option('-f', '--resource', help='Resource identifier')
 @click.option(
     '-o', '--output',
     type=click.Path(writable=True),
@@ -86,13 +86,19 @@ def delete_run(ctx, run):
 )
 def download_resource(ctx, run, resource, output):
     """Download a run resource file."""
-    url = ctx.obj['URLS'].download_result_file(run_id=run, resource_id=resource)
+    if resource is not None:
+        url = ctx.obj['URLS'].download_result_file(
+            run_id=run,
+            resource_id=resource
+        )
+    else:
+        url = ctx.obj['URLS'].download_result_archive(run_id=run)
     headers = ctx.obj['HEADERS']
     try:
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         content = r.headers['Content-Disposition']
-        if not output is None:
+        if output is not None:
             filename = output
         elif 'filename=' in content:
             filename = content[content.find('filename='):].split('=')[1]
@@ -100,15 +106,12 @@ def download_resource(ctx, run, resource, output):
             click.echo('not output filename found')
             return
         # Write the file contents in the response to the specified path
-        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
-        with open(filename, 'wb') as local_file:
-            for chunk in r.iter_content(chunk_size=128):
-                local_file.write(chunk)
+        save_file(r, filename)
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
 
-# -- Get run -------------------------------------------------------------------
+# -- Get run ------------------------------------------------------------------
 
 @click.command(name='show')
 @click.pass_context
@@ -166,11 +169,15 @@ def get_run(ctx, run):
         click.echo('{}'.format(ex))
 
 
-# -- List runs -----------------------------------------------------------------
+# -- List runs ----------------------------------------------------------------
 
 @click.command(name='list')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def list_runs(ctx, submission):
     """List all submission runs."""
     s_id = submission if submission else config.SUBMISSION_ID()
@@ -210,11 +217,15 @@ def list_runs(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- Start new submission run --------------------------------------------------
+# -- Start new submission run -------------------------------------------------
 
 @click.command(name='start')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def start_run(ctx, submission):
     """Start new submission run."""
     s_id = submission if submission else config.SUBMISSION_ID()
@@ -249,7 +260,7 @@ def start_run(ctx, submission):
             if para.is_file():
                 filename, target_path = arguments[key]
                 arg[labels.VALUE] = filename
-                if not target_path is None:
+                if target_path is not None:
                     arg[labels.AS] = target_path
             else:
                 arg[labels.VALUE] = arguments[key]
