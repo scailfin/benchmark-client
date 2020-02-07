@@ -1,4 +1,4 @@
 future
 Click
 requests
-rob-core>=0.1.0
+flowserv>=0.1.0

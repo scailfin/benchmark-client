@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,11 +12,10 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.table import ResultTable
 
+import flowserv.model.parameter.declaration as pd
 import robclient.config as config
-import robcore.model.template.parameter.declaration as pd
-import robcore.view.labels as labels
 
 
 @click.group(name='benchmarks')
@@ -44,14 +43,14 @@ def get_benchmark(ctx, benchmark):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            click.echo('{} ({})'.format(body[labels.NAME], body[labels.ID]))
-            if labels.DESCRIPTION in body:
-                click.echo('\n{}'.format(body[labels.DESCRIPTION]))
-            if labels.INSTRUCTIONS in body:
-                click.echo('\n{}'.format(body[labels.INSTRUCTIONS]))
+            click.echo('{} ({})'.format(body['name'], body['id']))
+            if 'description' in body:
+                click.echo('\n{}'.format(body['description']))
+            if 'instructions' in body:
+                click.echo('\n{}'.format(body['instructions']))
             click.echo('\nParameters:')
-            for p in body.get(labels.PARAMETERS, list()):
-                name = p[labels.NAME]
+            for p in body.get('parameters', list()):
+                name = p['name']
                 data_type = p[pd.LABEL_DATATYPE]
                 click.echo('  {} ({})'.format(name, data_type))
     except (requests.ConnectionError, requests.HTTPError) as ex:
@@ -73,8 +72,8 @@ def list_benchmarks(ctx):
             click.echo(json.dumps(body, indent=4))
         else:
             table = ResultTable(['ID', 'Name', 'Description'], [pd.DT_STRING] * 3)
-            for b in body[labels.BENCHMARKS]:
-                table.add([b[labels.ID], b[labels.NAME], b[labels.DESCRIPTION]])
+            for b in body['benchmarks']:
+                table.add([b['id'], b['name'], b['description']])
             for line in table.format():
                 click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
@@ -109,18 +108,18 @@ def get_leaderboard(ctx, benchmark, all):
         else:
             headline = ['Rank', 'Submission']
             types = [pd.DT_INTEGER, pd.DT_STRING]
-            for col in body[labels.SCHEMA]:
-                headline.append(col[labels.NAME])
-                types.append(col[labels.DATA_TYPE])
+            for col in body['schema']:
+                headline.append(col['name'])
+                types.append(col['type'])
             table = ResultTable(headline=headline, types=types)
             rank = 1
-            for run in body[labels.RANKING]:
-                row  = [str(rank), run[labels.SUBMISSION][labels.NAME]]
+            for run in body['ranking']:
+                row  = [str(rank), run['submission']['name']]
                 result = dict()
-                for val in run[labels.RESULTS]:
-                    result[val[labels.ID]] = val[labels.VALUE]
-                for col in body[labels.SCHEMA]:
-                    col_id = col[labels.ID]
+                for val in run['results']:
+                    result[val['id']] = val['value']
+                for col in body['schema']:
+                    col_id = col['id']
                     row.append(str(result[col_id]))
                 table.add(row)
                 rank += 1

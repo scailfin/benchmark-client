@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,12 +12,11 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.table import ResultTable
 
+import flowserv.core.util as util
+import flowserv.model.parameter.declaration as pd
 import robclient.config as config
-import robcore.model.template.parameter.declaration as pd
-import robcore.util as util
-import robcore.view.labels as labels
 
 
 @click.group(name='submissions')
@@ -47,14 +46,14 @@ def create_submission(ctx, benchmark, name, members, parameters):
         return
     url = ctx.obj['URLS'].create_submission(benchmark_id=b_id)
     headers = ctx.obj['HEADERS']
-    data = {labels.NAME: name}
+    data = {'name': name}
     if not members is None:
-        data[labels.MEMBERS] = members.split(',')
+        data['members'] = members.split(',')
     if not parameters is None:
         params = util.read_object(parameters)
         if not isinstance(params, list):
             params = list(params)
-        data[labels.PARAMETERS] = params
+        data['parameters'] = params
     try:
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
@@ -62,7 +61,7 @@ def create_submission(ctx, benchmark, name, members, parameters):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            s_id = body[labels.ID]
+            s_id = body['id']
             click.echo('export {}={}'.format(config.ROB_SUBMISSION, s_id))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
@@ -113,10 +112,10 @@ def get_submission(ctx, submission):
             click.echo(json.dumps(body, indent=4))
         else:
             members = list()
-            for u in body[labels.MEMBERS]:
-                members.append(u[labels.USERNAME])
-            click.echo('ID      : {}'.format(body[labels.ID]))
-            click.echo('Name    : {}'.format(body[labels.NAME]))
+            for u in body['members']:
+                members.append(u['username'])
+            click.echo('ID      : {}'.format(body['id']))
+            click.echo('Name    : {}'.format(body['name']))
             click.echo('Members : {}'.format(','.join(members)))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
@@ -139,8 +138,8 @@ def list_submissions(ctx, submission):
             click.echo(json.dumps(body, indent=4))
         else:
             table = ResultTable(['ID', 'Name'], [pd.DT_STRING] * 2)
-            for s in body[labels.SUBMISSIONS]:
-                table.add([s[labels.ID], s[labels.NAME]])
+            for s in body['submissions']:
+                table.add([s['id'], s['name']])
             for line in table.format():
                 click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
@@ -167,10 +166,10 @@ def update_submission(ctx, submission, name, members):
     headers = ctx.obj['HEADERS']
     data = dict()
     if not name is None:
-        data[labels.NAME] = name
+        data['name'] = name
     member_list = None
     if not members is None:
-        data[labels.MEMBERS] = members.split(',')
+        data['members'] = members.split(',')
     try:
         r = requests.put(url, json=data, headers=headers)
         r.raise_for_status()
@@ -178,12 +177,12 @@ def update_submission(ctx, submission, name, members):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            s_id = body[labels.ID]
+            s_id = body['id']
             click.echo('Submission \'{}\' updated.'.format(s_id))
             members = list()
-            for u in body[labels.MEMBERS]:
-                members.append(u[labels.USERNAME])
-            click.echo('Name    : {}'.format(body[labels.NAME]))
+            for u in body['members']:
+                members.append(u['username'])
+            click.echo('Name    : {}'.format(body['name']))
             click.echo('Members : {}'.format(','.join(members)))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))

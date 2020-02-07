@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -11,7 +11,8 @@
 import click
 import requests
 
-from robcore.view.route import UrlFactory, HEADER_TOKEN
+from flowserv.service.api import HEADER_TOKEN
+from robclient.route import UrlFactory
 
 import robclient.cli.benchmark as benchmark
 import robclient.cli.files as file

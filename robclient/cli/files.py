@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,12 +12,11 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.table import ResultTable
 
+import flowserv.core.util as util
+import flowserv.model.parameter.declaration as pd
 import robclient.config as config
-import robcore.model.template.parameter.declaration as pd
-import robcore.util as util
-import robcore.view.labels as labels
 
 
 @click.group(name='files')
@@ -115,12 +114,12 @@ def list_files(ctx, submission):
                 headline=['ID', 'Name', 'Created At', 'Size'],
                 types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING, pd.DT_INTEGER]
             )
-            for f in body[labels.FILES]:
+            for f in body['files']:
                 table.add([
-                    f[labels.ID],
-                    f[labels.NAME],
-                    util.to_localstr(text=f[labels.CREATED_AT]),
-                    f[labels.FILESIZE]
+                    f['id'],
+                    f['name'],
+                    util.to_localstr(text=f['createdAt']),
+                    f['size']
                 ])
             for line in table.format():
                 click.echo(line)
@@ -155,8 +154,8 @@ def upload_file(ctx, submission, input):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            f_id = body[labels.ID]
-            f_name = body[labels.NAME]
+            f_id = body['id']
+            f_name = body['name']
             click.echo('Uploaded \'{}\' with ID {}.'.format(f_name, f_id))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))

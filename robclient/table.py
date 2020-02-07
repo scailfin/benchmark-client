@@ -1,14 +1,14 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
 """Helper methods and classes for the command line interface."""
 
-import robcore.model.template.parameter.declaration as pd
+import flowserv.model.parameter.declaration as pd
 
 
 class ResultTable(object):

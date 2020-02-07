@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,14 +12,13 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.table import ResultTable
 
+import flowserv.model.parameter.declaration as pd
 import robclient.config as config
-import robcore.model.template.parameter.declaration as pd
-import robcore.view.labels as labels
 
 
-# -- List users ----------------------------------------------------------------
+# -- List users ---------------------------------------------------------------
 
 @click.command(name='users')
 @click.pass_context
@@ -35,15 +34,15 @@ def list(ctx):
             click.echo(json.dumps(body, indent=4))
         else:
             table = ResultTable(['Name', 'ID'], [pd.DT_STRING, pd.DT_STRING])
-            for user in body[labels.USERS]:
-                table.add([user[labels.USERNAME], user[labels.ID]])
+            for user in body['users']:
+                table.add([user['username'], user['id']])
             for line in table.format():
                 click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
 
-# -- Login ---------------------------------------------------------------------
+# -- Login --------------------------------------------------------------------
 
 @click.command()
 @click.pass_context
@@ -64,7 +63,7 @@ def login(ctx, username, password):
     """Login to to obtain access token."""
     url = ctx.obj['URLS'].login()
     headers = ctx.obj['HEADERS']
-    data = {labels.USERNAME: username, labels.PASSWORD: password}
+    data = {'username': username, 'password': password}
     try:
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
@@ -72,13 +71,13 @@ def login(ctx, username, password):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            token = body[labels.ACCESS_TOKEN]
+            token = body['token']
             click.echo('export {}={}'.format(config.ROB_ACCESS_TOKEN, token))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
 
-# -- Logout --------------------------------------------------------------------
+# -- Logout -------------------------------------------------------------------
 
 @click.command()
 @click.pass_context
@@ -99,7 +98,7 @@ def logout(ctx):
         click.echo('{}'.format(ex))
 
 
-# -- Register ------------------------------------------------------------------
+# -- Register -----------------------------------------------------------------
 
 @click.command()
 @click.pass_context
@@ -121,9 +120,9 @@ def register(ctx, username, password):
     url = ctx.obj['URLS'].register_user()
     headers = ctx.obj['HEADERS']
     data = {
-        labels.USERNAME: username,
-        labels.PASSWORD: password,
-        labels.VERIFY_USER: False
+        'username': username,
+        'password': password,
+        'verify': False
     }
     try:
         r = requests.post(url, json=data, headers=headers)
@@ -132,14 +131,14 @@ def register(ctx, username, password):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            user_id = body[labels.ID]
-            user_name = body[labels.USERNAME]
+            user_id = body['id']
+            user_name = body['username']
             click.echo('Registered {} with ID {}.'.format(user_name, user_id))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
 
-# -- Reset Password ------------------------------------------------------------
+# -- Reset Password -----------------------------------------------------------
 
 @click.command(name='pwd')
 @click.pass_context
@@ -160,14 +159,14 @@ def reset_password(ctx, username, password):
     """Reset user password."""
     url = ctx.obj['URLS'].request_password_reset()
     headers = ctx.obj['HEADERS']
-    data = {labels.USERNAME: username}
+    data = {'username': username}
     try:
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
         body = r.json()
-        reqest_id = body[labels.REQUEST_ID]
+        reqest_id = body['requestId']
         url = ctx.obj['URLS'].reset_password()
-        data = {labels.REQUEST_ID: reqest_id, labels.PASSWORD: password}
+        data = {'requestId': reqest_id, 'password': password}
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
         if ctx.obj['RAW']:
@@ -178,7 +177,7 @@ def reset_password(ctx, username, password):
         click.echo('{}'.format(ex))
 
 
-# -- Who am I ------------------------------------------------------------------
+# -- Who am I -----------------------------------------------------------------
 
 @click.command()
 @click.pass_context
@@ -192,6 +191,6 @@ def whoami(ctx):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            click.echo('Logged in as {}.'.format(body[labels.USERNAME]))
+            click.echo('Logged in as {}.'.format(body['username']))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
