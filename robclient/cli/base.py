@@ -9,7 +9,6 @@
 """Command line interface for the Reproducible Open Benchmark Web API."""
 
 import click
-import requests
 
 from flowserv.service.api import HEADER_TOKEN
 from robclient.route import UrlFactory
@@ -36,17 +35,16 @@ def cli(ctx, raw):
     # https://click.palletsprojects.com/en/7.x/commands/#nested-handling-and-contexts
     ctx.ensure_object(dict)
     # Set the raw output flag and initialize the url factory in the context
-    # object. The API base url is expected to be set in the environment variable
-    # 'ROB_API_HOST'.
+    # object. The API base url is expected to be set in the environment
+    # variable 'ROB_API_HOST'.
     ctx.obj['RAW'] = raw
     ctx.obj['URLS'] = UrlFactory(base_url=config.API_URL())
     ctx.obj['HEADERS'] = {HEADER_TOKEN: config.ACCESS_TOKEN()}
 
-# -- User Commands -------------------------------------------------------------
 
+# -- User Commands ------------------------------------------------------------
 
-
-# User commands
+# Users
 cli.add_command(user.list)
 cli.add_command(user.login)
 cli.add_command(user.logout)
