@@ -29,7 +29,7 @@ def runs():
     pass
 
 
-# -- Cancel run ----------------------------------------------------------------
+# -- Cancel run ---------------------------------------------------------------
 
 @click.command(name='cancel')
 @click.pass_context
@@ -53,7 +53,7 @@ def cancel_run(ctx, run):
         click.echo('{}'.format(ex))
 
 
-# -- Delete run ----------------------------------------------------------------
+# -- Delete run ---------------------------------------------------------------
 
 @click.command(name='delete')
 @click.pass_context
@@ -72,27 +72,44 @@ def delete_run(ctx, run):
         click.echo('{}'.format(ex))
 
 
-# -- Download resource file ----------------------------------------------------
+# -- Download resource file(s) ------------------------------------------------
 
 @click.command(name='download')
 @click.pass_context
 @click.option('-r', '--run', required=True, help='Run identifier')
-@click.option('-f', '--resource', required=True, help='Resource identifier')
+@click.option('-f', '--resource', required=False, help='Resource identifier')
+@click.option(
+    '-a', '--all',
+    is_flag=True,
+    default=False,
+    help='Download archive'
+)
 @click.option(
     '-o', '--output',
     type=click.Path(writable=True),
     required=False,
     help='Save as ...'
 )
-def download_resource(ctx, run, resource, output):
+def download_resource(ctx, run, resource, all, output):
     """Download a run resource file."""
-    url = ctx.obj['URLS'].download_result_file(run_id=run, resource_id=resource)
+    # We cannot have a resource and the all flag being True
+    if resource is not None and all:
+        click.echo('invalid argument combination')
+        return
+    elif resource is None and not all:
+        click.echo('select resource or all')
+        return
+    urls = ctx.obj['URLS']
+    if resource is not None:
+        url = urls.download_run_file(run_id=run, resource_id=resource)
+    else:
+        url = urls.download_run_archive(run_id=run)
     headers = ctx.obj['HEADERS']
     try:
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         content = r.headers['Content-Disposition']
-        if not output is None:
+        if output is not None:
             filename = output
         elif 'filename=' in content:
             filename = content[content.find('filename='):].split('=')[1]
@@ -106,7 +123,7 @@ def download_resource(ctx, run, resource, output):
         # Write the file contents in the response to the specified path
         # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
         targetdir = os.path.dirname(filename)
-        if targetdir is not None:
+        if targetdir:
             util.create_dir(targetdir)
         with open(filename, 'wb') as local_file:
             for chunk in r.iter_content(chunk_size=128):
@@ -115,7 +132,7 @@ def download_resource(ctx, run, resource, output):
         click.echo('{}'.format(ex))
 
 
-# -- Get run -------------------------------------------------------------------
+# -- Get run ------------------------------------------------------------------
 
 @click.command(name='show')
 @click.pass_context
@@ -173,7 +190,7 @@ def get_run(ctx, run):
         click.echo('{}'.format(ex))
 
 
-# -- List runs -----------------------------------------------------------------
+# -- List runs ----------------------------------------------------------------
 
 @click.command(name='list')
 @click.pass_context
@@ -208,7 +225,7 @@ def list_runs(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- Start new submission run --------------------------------------------------
+# -- Start new submission run -------------------------------------------------
 
 @click.command(name='start')
 @click.pass_context
@@ -247,7 +264,7 @@ def start_run(ctx, submission):
             if para.is_file():
                 filename, target_path = arguments[key]
                 arg['value'] = filename
-                if not target_path is None:
+                if target_path is not None:
                     arg['as'] = target_path
             else:
                 arg['value'] = arguments[key]

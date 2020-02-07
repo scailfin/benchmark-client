@@ -134,7 +134,7 @@ class UrlFactory(object):
         # /benchmarks/{benchmarkId}/downloads//archive
         return self.get_benchmark(benchmark_id) + '/downloads/archive'
 
-    def download_benchmark_resource(self, benchmark_id, resource_id):
+    def download_benchmark_file(self, benchmark_id, resource_id):
         """Url to GET a benchmark resource.
 
         Parameters
@@ -169,7 +169,7 @@ class UrlFactory(object):
         """
         return self.list_files(submission_id) + '/' + file_id
 
-    def download_result_archive(self, run_id):
+    def download_run_archive(self, run_id):
         """Url to GET a run result file archive.
 
         Parameters
@@ -186,7 +186,7 @@ class UrlFactory(object):
         # /runs/{runId}/downloads/archive
         return self.get_run(run_id) + '/downloads/archive'
 
-    def download_result_file(self, run_id, resource_id):
+    def download_run_file(self, run_id, resource_id):
         """Url to GET a run result file.
 
         Parameters
