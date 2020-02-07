@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Reproducible Open Benchmarks - Command Line Client'
-copyright = '2019, Heiko Mueller'
+copyright = '2020, Heiko Mueller'
 author = 'Heiko Mueller'
 
 # The full version, including alpha/beta/rc tags
