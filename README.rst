@@ -1,7 +1,3 @@
-==================================================
-Reproducible Open Benchmarks - Command Line Client
-==================================================
-
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg
    :target: https://github.com/scailfin/rob-client/blob/master/LICENSE
 
