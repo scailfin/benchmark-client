@@ -229,7 +229,11 @@ def list_runs(ctx, submission):
 
 @click.command(name='start')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def start_run(ctx, submission):
     """Start new submission run."""
     s_id = submission if submission else config.SUBMISSION_ID()

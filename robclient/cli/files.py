@@ -25,11 +25,15 @@ def files():
     pass
 
 
-# -- Delete file ---------------------------------------------------------------
+# -- Delete file --------------------------------------------------------------
 
 @click.command(name='delete')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option('-f', '--file', required=True, help='File identifier')
 def delete_file(ctx, submission, file):
     """Delete a previously uploaded file."""
@@ -50,11 +54,15 @@ def delete_file(ctx, submission, file):
         click.echo('{}'.format(ex))
 
 
-# -- Download file -------------------------------------------------------------
+# -- Download file ------------------------------------------------------------
 
 @click.command(name='download')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option('-f', '--file', required=True, help='File identifier')
 @click.option(
     '-o', '--output',
@@ -74,7 +82,7 @@ def download_file(ctx, submission, file, output):
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         content = r.headers['Content-Disposition']
-        if not output is None:
+        if output is not None:
             filename = output
         elif 'filename=' in content:
             filename = content[content.find('filename='):].split('=')[1]
@@ -90,11 +98,15 @@ def download_file(ctx, submission, file, output):
         click.echo('{}'.format(ex))
 
 
-# -- List files ----------------------------------------------------------------
+# -- List files ---------------------------------------------------------------
 
 @click.command(name='list')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def list_files(ctx, submission):
     """List uploaded files for a submission."""
     s_id = submission if submission else config.SUBMISSION_ID()
@@ -127,11 +139,15 @@ def list_files(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- Upload file ---------------------------------------------------------------
+# -- Upload file --------------------------------------------------------------
 
 @click.command(name='upload')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option(
     '-i', '--input',
     type=click.Path(exists=True, readable=True),
