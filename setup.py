@@ -18,7 +18,7 @@ install_requires=[
     'future',
     'Click',
     'requests',
-    'flowserv>=0.1.0'
+    'flowserv-core>=0.1.0'
 ]
 
 
