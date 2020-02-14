@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,7 +12,7 @@ the environment.
 
 import os
 
-from robcore.config.api import API_URL
+from flowserv.config.api import API_URL
 
 
 """Environment variables for the command line interface."""

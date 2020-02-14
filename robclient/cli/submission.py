@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,12 +12,11 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.table import ResultTable
 
+import flowserv.core.util as util
+import flowserv.model.parameter.declaration as pd
 import robclient.config as config
-import robcore.model.template.parameter.declaration as pd
-import robcore.core.util as util
-import robcore.view.labels as labels
 
 
 @click.group(name='submissions')
@@ -47,14 +46,14 @@ def create_submission(ctx, benchmark, name, members, parameters):
         return
     url = ctx.obj['URLS'].create_submission(benchmark_id=b_id)
     headers = ctx.obj['HEADERS']
-    data = {labels.NAME: name}
+    data = {'name': name}
     if members is not None:
-        data[labels.MEMBERS] = members.split(',')
+        data['members'] = members.split(',')
     if parameters is not None:
         params = util.read_object(parameters)
         if not isinstance(params, list):
             params = list(params)
-        data[labels.PARAMETERS] = params
+        data['parameters'] = params
     try:
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
@@ -62,7 +61,7 @@ def create_submission(ctx, benchmark, name, members, parameters):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            s_id = body[labels.ID]
+            s_id = body['id']
             click.echo('export {}={}'.format(config.ROB_SUBMISSION, s_id))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
@@ -121,11 +120,40 @@ def get_submission(ctx, submission):
             click.echo(json.dumps(body, indent=4))
         else:
             members = list()
-            for u in body[labels.MEMBERS]:
-                members.append(u[labels.USERNAME])
-            click.echo('ID      : {}'.format(body[labels.ID]))
-            click.echo('Name    : {}'.format(body[labels.NAME]))
+            for u in body['members']:
+                members.append(u['username'])
+            click.echo('ID      : {}'.format(body['id']))
+            click.echo('Name    : {}'.format(body['name']))
             click.echo('Members : {}'.format(','.join(members)))
+            # -- Uploaded files -----------------------------------------------
+            click.echo('\nUploaded Files\n--------------\n')
+            table = ResultTable(
+                headline=['ID', 'Name', 'Created At', 'Size'],
+                types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING, pd.DT_INTEGER]
+            )
+            for f in body['files']:
+                table.add([
+                    f['id'],
+                    f['name'],
+                    util.to_localstr(text=f['createdAt']),
+                    f['size']
+                ])
+            for line in table.format():
+                click.echo(line)
+            # -- Runs ---------------------------------------------------------
+            click.echo('\nRuns\n----\n')
+            table = ResultTable(
+                headline=['ID', 'Created At', 'State'],
+                types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING]
+            )
+            for r in body['runs']:
+                table.add([
+                    r['id'],
+                    util.to_localstr(text=r['createdAt']),
+                    r['state']
+                ])
+            for line in table.format():
+                click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
 
@@ -134,12 +162,15 @@ def get_submission(ctx, submission):
 
 @click.command(name='list')
 @click.pass_context
-@click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
+@click.option(
+    '-b', '--benchmark',
+    required=False,
+    help='Benchmark identifier'
+)
 def list_submissions(ctx, benchmark):
     """Show submissions for a benchmark or user."""
-    url = ctx.obj['URLS'].list_submissions(
-        benchmark_id=config.BENCHMARK_ID(default_value=benchmark)
-    )
+    b_id = benchmark if benchmark else config.BENCHMARK_ID()
+    url = ctx.obj['URLS'].list_submissions(benchmark_id=b_id)
     headers = ctx.obj['HEADERS']
     try:
         r = requests.get(url, headers=headers)
@@ -149,8 +180,8 @@ def list_submissions(ctx, benchmark):
             click.echo(json.dumps(body, indent=4))
         else:
             table = ResultTable(['ID', 'Name'], [pd.DT_STRING] * 2)
-            for s in body[labels.SUBMISSIONS]:
-                table.add([s[labels.ID], s[labels.NAME]])
+            for s in body['submissions']:
+                table.add([s['id'], s['name']])
             for line in table.format():
                 click.echo(line)
     except (requests.ConnectionError, requests.HTTPError) as ex:
@@ -181,9 +212,9 @@ def update_submission(ctx, submission, name, members):
     headers = ctx.obj['HEADERS']
     data = dict()
     if name is not None:
-        data[labels.NAME] = name
+        data['name'] = name
     if members is not None:
-        data[labels.MEMBERS] = members.split(',')
+        data['members'] = members.split(',')
     try:
         r = requests.put(url, json=data, headers=headers)
         r.raise_for_status()
@@ -191,12 +222,12 @@ def update_submission(ctx, submission, name, members):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            s_id = body[labels.ID]
+            s_id = body['id']
             click.echo('Submission \'{}\' updated.'.format(s_id))
             members = list()
-            for u in body[labels.MEMBERS]:
-                members.append(u[labels.USERNAME])
-            click.echo('Name    : {}'.format(body[labels.NAME]))
+            for u in body['members']:
+                members.append(u['username'])
+            click.echo('Name    : {}'.format(body['name']))
             click.echo('Members : {}'.format(','.join(members)))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))

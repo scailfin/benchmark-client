@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -12,12 +12,11 @@ import click
 import json
 import requests
 
-from robclient.io import ResultTable
+from robclient.table import ResultTable
 
+import flowserv.core.util as util
+import flowserv.model.parameter.declaration as pd
 import robclient.config as config
-import robcore.model.template.parameter.declaration as pd
-import robcore.core.util as util
-import robcore.view.labels as labels
 
 
 @click.group(name='files')
@@ -26,11 +25,15 @@ def files():
     pass
 
 
-# -- Delete file ---------------------------------------------------------------
+# -- Delete file --------------------------------------------------------------
 
 @click.command(name='delete')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option('-f', '--file', required=True, help='File identifier')
 def delete_file(ctx, submission, file):
     """Delete a previously uploaded file."""
@@ -51,11 +54,15 @@ def delete_file(ctx, submission, file):
         click.echo('{}'.format(ex))
 
 
-# -- Download file -------------------------------------------------------------
+# -- Download file ------------------------------------------------------------
 
 @click.command(name='download')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option('-f', '--file', required=True, help='File identifier')
 @click.option(
     '-o', '--output',
@@ -75,7 +82,7 @@ def download_file(ctx, submission, file, output):
         r = requests.get(url, headers=headers)
         r.raise_for_status()
         content = r.headers['Content-Disposition']
-        if not output is None:
+        if output is not None:
             filename = output
         elif 'filename=' in content:
             filename = content[content.find('filename='):].split('=')[1]
@@ -91,11 +98,15 @@ def download_file(ctx, submission, file, output):
         click.echo('{}'.format(ex))
 
 
-# -- List files ----------------------------------------------------------------
+# -- List files ---------------------------------------------------------------
 
 @click.command(name='list')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 def list_files(ctx, submission):
     """List uploaded files for a submission."""
     s_id = submission if submission else config.SUBMISSION_ID()
@@ -115,12 +126,12 @@ def list_files(ctx, submission):
                 headline=['ID', 'Name', 'Created At', 'Size'],
                 types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING, pd.DT_INTEGER]
             )
-            for f in body[labels.FILES]:
+            for f in body['files']:
                 table.add([
-                    f[labels.ID],
-                    f[labels.NAME],
-                    util.to_localstr(text=f[labels.CREATED_AT]),
-                    f[labels.FILESIZE]
+                    f['id'],
+                    f['name'],
+                    util.to_localstr(text=f['createdAt']),
+                    f['size']
                 ])
             for line in table.format():
                 click.echo(line)
@@ -128,11 +139,15 @@ def list_files(ctx, submission):
         click.echo('{}'.format(ex))
 
 
-# -- Upload file ---------------------------------------------------------------
+# -- Upload file --------------------------------------------------------------
 
 @click.command(name='upload')
 @click.pass_context
-@click.option('-s', '--submission', required=False, help='Submission identifier')
+@click.option(
+    '-s', '--submission',
+    required=False,
+    help='Submission identifier'
+)
 @click.option(
     '-i', '--input',
     type=click.Path(exists=True, readable=True),
@@ -155,8 +170,8 @@ def upload_file(ctx, submission, input):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            f_id = body[labels.ID]
-            f_name = body[labels.NAME]
+            f_id = body['id']
+            f_name = body['name']
             click.echo('Uploaded \'{}\' with ID {}.'.format(f_name, f_id))
     except (requests.ConnectionError, requests.HTTPError) as ex:
         click.echo('{}'.format(ex))
