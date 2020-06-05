@@ -36,18 +36,18 @@ The Reproducible Open Benchmarks platform is implemented in Python. We recommend
     source venv/bin/activate
 
 
-The ROB Client requires the ``robcore`` package as well as a `Web API Server <https://github.com/scailfin/rob-webapi-flask>`_. The following steps will install the ROB client and all required packages:
+The ROB Client requires the ``flowserv`` package as well as a `Web API Server <https://github.com/scailfin/rob-webapi-flask>`_. The following steps will install the ROB client and all required packages:
 
 
 .. code-block:: bash
 
-    git clone git@github.com:scailfin/rob-core.git
+    git clone git@github.com:scailfin/flowserv-core.git
     pip install -e rob-core
     git clone git@github.com:scailfin/rob-client.git
     pip install -e rob-client
 
 
-The primary configuration parameters are defined in the `ROB Configuration documentation <https://github.com/scailfin/rob-core/blob/master/docs/configuration.rst>`_. In particular, the environment variables **ROB_API_HOST**, **ROB_API_PORT**, and **ROB_API_PATH** are used to define the base URL for the API that is used for client requests. Three additional environment variables are defined by the client:
+The primary configuration parameters are defined in the `ROB Configuration documentation <https://github.com/scailfin/rob-core/blob/master/docs/configuration.rst>`_. In particular, the environment variables **FLOWSERV_API_HOST**, **FLOWSERV_API_PORT**, and **FLOWSERV_API_PATH** are used to define the base URL for the API that is used for client requests. Three additional environment variables are defined by the client:
 
 - **ROB_ACCESS_TOKEN**: Access token for the user obtained after authentication
 - **ROB_BENCHMARK**: Identifier of the default benchmark

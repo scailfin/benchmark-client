@@ -36,7 +36,7 @@ def cli(ctx, raw):
     ctx.ensure_object(dict)
     # Set the raw output flag and initialize the url factory in the context
     # object. The API base url is expected to be set in the environment
-    # variable 'ROB_API_HOST'.
+    # variable 'FLOWSERV_API_HOST'.
     ctx.obj['RAW'] = raw
     ctx.obj['URLS'] = UrlFactory(base_url=config.API_URL())
     ctx.obj['HEADERS'] = {HEADER_TOKEN: config.ACCESS_TOKEN()}
