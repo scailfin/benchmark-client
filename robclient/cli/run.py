@@ -14,12 +14,13 @@ import os
 import requests
 
 from flowserv.cli.parameter import read
-from flowserv.core.files import FileDescriptor
+from flowserv.model.parameter.files import PARA_FILE
+from flowserv.model.parameter.string import PARA_STRING
+from flowserv.model.template.parameter import ParameterIndex
+from flowserv.service.run.argument import ARG, GET_FILE
 from robclient.table import ResultTable
 
-import flowserv.core.util as util
-import flowserv.model.parameter.base as pb
-import flowserv.model.parameter.declaration as pd
+import flowserv.util as util
 import robclient.config as config
 
 
@@ -121,7 +122,7 @@ def download_resource(ctx, run, resource, all, output):
             click.echo('not output filename found')
             return
         # Write the file contents in the response to the specified path
-        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
+        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/  # noqa: E501
         targetdir = os.path.dirname(filename)
         if targetdir:
             util.create_dir(targetdir)
@@ -150,27 +151,23 @@ def get_run(ctx, run):
         else:
             click.echo('ID: {}'.format(body['id']))
             if 'startedAt' in body:
-                ts = util.to_localstr(text=body['startedAt'])
-                click.echo('Started at: {}'.format(ts))
+                click.echo('Started at: {}'.format(body['startedAt'][:19]))
             if 'finishedAt' in body:
-                ts = util.to_localstr(text=body['finishedAt'])
-                click.echo('Finished at: {}'.format(ts))
+                click.echo('Finished at: {}'.format(body['finishedAt'][:19]))
             click.echo('State: {}'.format(body['state']))
             # Get index of parameters. The index contains the parameter name
             # and type
             parameters = dict()
             for p in body['parameters']:
-                name = p[pd.LABEL_NAME]
-                data_type = p[pd.LABEL_DATATYPE]
+                name = p['name']
+                data_type = p['type']
                 parameters[p['id']] = (name, data_type)
             click.echo('Arguments:')
             for arg in body['arguments']:
                 name, data_type = parameters[arg['id']]
-                if data_type == pd.DT_FILE:
-                    fh = arg['value']['file']
-                    f_name = fh['name']
-                    f_id = fh['id']
-                    value = '{} ({})'.format(f_name, f_id)
+                if data_type == PARA_FILE:
+                    file_id, target_path = GET_FILE(arg['value'])
+                    value = '{} ({})'.format(file_id, target_path)
                 else:
                     value = arg['value']
                 click.echo('  {} = {}'.format(name, value))
@@ -216,7 +213,7 @@ def list_runs(ctx, submission):
         else:
             table = ResultTable(
                 headline=['ID', 'Submitted at', 'State'],
-                types=[pd.DT_STRING] * 4
+                types=[PARA_STRING] * 4
             )
             for r in body['runs']:
                 run = list([r['id'], r['createdAt'], r['state']])
@@ -254,29 +251,12 @@ def start_run(ctx, submission):
         # in the submission handle
         files = []
         for fh in body['files']:
-            files.append(
-                FileDescriptor(
-                    identifier=fh['id'],
-                    name=fh['name'],
-                    created_at=util.to_datetime(fh['createdAt']))
-                )
+            files.append((fh['id'], fh['name'], fh['createdAt'][:19]))
         # Create list of additional user-provided template parameters
-        parameters = pb.create_parameter_index(body['parameters'])
-        ps = sorted(parameters.values(), key=lambda p: (p.index, p.identifier))
+        parameters = ParameterIndex.from_dict(body['parameters'])
         # Read values for all parameters
-        arguments = read(ps, files=files)
-        data = {'arguments': []}
-        for key in arguments:
-            para = parameters[key]
-            arg = {'id': para.identifier}
-            if para.is_file():
-                filename, target_path = arguments[key]
-                arg['value'] = filename
-                if target_path is not None:
-                    arg['as'] = target_path
-            else:
-                arg['value'] = arguments[key]
-            data['arguments'].append(arg)
+        args = read(parameters.sorted(), files=files)
+        data = {'arguments': [ARG(key, val) for key, val in args.items()]}
         url = ctx.obj['URLS'].start_run(submission_id=s_id)
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()

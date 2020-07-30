@@ -12,10 +12,11 @@ import click
 import json
 import requests
 
+from flowserv.model.parameter.numeric import PARA_INT
+from flowserv.model.parameter.string import PARA_STRING
 from robclient.table import ResultTable
 
-import flowserv.core.util as util
-import flowserv.model.parameter.declaration as pd
+import flowserv.util as util
 import robclient.config as config
 
 
@@ -90,7 +91,7 @@ def download_file(ctx, submission, file, output):
             click.echo('not output filename found')
             return
         # Write the file contents in the response to the specified path
-        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
+        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/  # noqa: E501
         with open(filename, 'wb') as local_file:
             for chunk in r.iter_content(chunk_size=128):
                 local_file.write(chunk)
@@ -124,13 +125,13 @@ def list_files(ctx, submission):
         else:
             table = ResultTable(
                 headline=['ID', 'Name', 'Created At', 'Size'],
-                types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING, pd.DT_INTEGER]
+                types=[PARA_STRING, PARA_STRING, PARA_STRING, PARA_INT]
             )
             for f in body['files']:
                 table.add([
                     f['id'],
                     f['name'],
-                    util.to_localstr(text=f['createdAt']),
+                    f['createdAt'][:19],
                     f['size']
                 ])
             for line in table.format():
