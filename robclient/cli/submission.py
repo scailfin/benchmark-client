@@ -12,10 +12,11 @@ import click
 import json
 import requests
 
+from flowserv.model.parameter.numeric import PARA_INT
+from flowserv.model.parameter.string import PARA_STRING
 from robclient.table import ResultTable
 
-import flowserv.core.util as util
-import flowserv.model.parameter.declaration as pd
+import flowserv.util as util
 import robclient.config as config
 
 
@@ -32,13 +33,7 @@ def submissions():
 @click.option('-b', '--benchmark', required=False, help='Benchmark identifier')
 @click.option('-n', '--name', required=True, help='Submission name')
 @click.option('-m', '--members', required=False, help='Submission members')
-@click.option(
-    '-p', '--parameters',
-    required=False,
-    type=click.Path(exists=True, readable=True),
-    help='Additional submission parameters'
-)
-def create_submission(ctx, benchmark, name, members, parameters):
+def create_submission(ctx, benchmark, name, members):
     """Create a new submission."""
     b_id = benchmark if benchmark else config.BENCHMARK_ID()
     if b_id is None:
@@ -49,11 +44,6 @@ def create_submission(ctx, benchmark, name, members, parameters):
     data = {'name': name}
     if members is not None:
         data['members'] = members.split(',')
-    if parameters is not None:
-        params = util.read_object(parameters)
-        if not isinstance(params, list):
-            params = list(params)
-        data['parameters'] = params
     try:
         r = requests.post(url, json=data, headers=headers)
         r.raise_for_status()
@@ -129,13 +119,13 @@ def get_submission(ctx, submission):
             click.echo('\nUploaded Files\n--------------\n')
             table = ResultTable(
                 headline=['ID', 'Name', 'Created At', 'Size'],
-                types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING, pd.DT_INTEGER]
+                types=[PARA_STRING, PARA_STRING, PARA_STRING, PARA_INT]
             )
             for f in body['files']:
                 table.add([
                     f['id'],
                     f['name'],
-                    util.to_localstr(text=f['createdAt']),
+                    f['createdAt'][:19],
                     f['size']
                 ])
             for line in table.format():
@@ -144,12 +134,12 @@ def get_submission(ctx, submission):
             click.echo('\nRuns\n----\n')
             table = ResultTable(
                 headline=['ID', 'Created At', 'State'],
-                types=[pd.DT_STRING, pd.DT_STRING, pd.DT_STRING]
+                types=[PARA_STRING] * 3
             )
             for r in body['runs']:
                 table.add([
                     r['id'],
-                    util.to_localstr(text=r['createdAt']),
+                    r['createdAt'][:19],
                     r['state']
                 ])
             for line in table.format():
@@ -179,7 +169,7 @@ def list_submissions(ctx, benchmark):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            table = ResultTable(['ID', 'Name'], [pd.DT_STRING] * 2)
+            table = ResultTable(['ID', 'Name'], [PARA_STRING] * 2)
             for s in body['submissions']:
                 table.add([s['id'], s['name']])
             for line in table.format():

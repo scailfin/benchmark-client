@@ -13,10 +13,11 @@ import json
 import os
 import requests
 
+from flowserv.model.parameter.numeric import NUMERIC_TYPES
+from flowserv.model.parameter.string import PARA_STRING
 from robclient.table import ResultTable
 
-import flowserv.core.util as util
-import flowserv.model.parameter.declaration as pd
+import flowserv.util as util
 import robclient.config as config
 
 
@@ -53,7 +54,7 @@ def get_benchmark(ctx, benchmark):
             click.echo('\nParameters:')
             for p in body.get('parameters', list()):
                 name = p['name']
-                data_type = p[pd.LABEL_DATATYPE]
+                data_type = p['type']
                 click.echo('  {} ({})'.format(name, data_type))
             resources = body.get('postproc', dict()).get('resources')
             if resources is not None:
@@ -82,7 +83,7 @@ def list_benchmarks(ctx):
         else:
             table = ResultTable(
                 ['ID', 'Name', 'Description'],
-                [pd.DT_STRING] * 3
+                [PARA_STRING] * 3
             )
             for b in body['benchmarks']:
                 table.add([b['id'], b['name'], b['description']])
@@ -119,7 +120,7 @@ def get_leaderboard(ctx, benchmark, all):
             click.echo(json.dumps(body, indent=4))
         else:
             headline = ['Rank', 'Submission']
-            types = [pd.DT_INTEGER, pd.DT_STRING]
+            types = NUMERIC_TYPES
             for col in body['schema']:
                 headline.append(col['name'])
                 types.append(col['type'])
@@ -194,7 +195,7 @@ def download_resource(ctx, benchmark, resource, all, output):
             click.echo('not output filename found')
             return
         # Write the file contents in the response to the specified path
-        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/
+        # Based on https://www.techcoil.com/blog/how-to-download-a-file-via-http-post-and-http-get-with-python-3-requests-library/  # noqa: E501
         targetdir = os.path.dirname(filename)
         if targetdir:
             util.create_dir(targetdir)

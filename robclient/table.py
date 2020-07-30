@@ -8,7 +8,7 @@
 
 """Helper methods and classes for the command line interface."""
 
-import flowserv.model.parameter.declaration as pd
+from flowserv.model.parameter.numeric import NUMERIC_TYPES
 
 
 class ResultTable(object):
@@ -55,9 +55,9 @@ class ResultTable(object):
         column_size = [0] * len(self.rows[0])
         for row in self.rows:
             for col in range(len(column_size)):
-                l = len('{}'.format(row[col]))
-                if l > column_size[col]:
-                    column_size[col] = l
+                vallen = len('{}'.format(row[col]))
+                if vallen > column_size[col]:
+                    column_size[col] = vallen
         # Format all riws
         result = list([format_row(self.rows[0], column_size, self.types)])
         line = '-' * column_size[0]
@@ -85,7 +85,7 @@ def align(type_id):
     -------
     string
     """
-    if type_id in [pd.DT_INTEGER, pd.DT_DECIMAL]:
+    if type_id in NUMERIC_TYPES:
         return '>'
     else:
         return '<'
@@ -108,11 +108,18 @@ def format_row(row, column_size, types):
     -------
     string
     """
-    line = '{val: {align}{width}}'.format(val=row[0], align=align(types[0]), width=column_size[0])
+    line = '{val: {align}{width}}'.format(
+        val=row[0],
+        align=align(types[0]),
+        width=column_size[0]
+    )
     for i in range(1, len(row)):
-        pattern = '0: <' + str(column_size[i])
         line += ' | '
-        line += '{val: {align}{width}}'.format(val=row[i], align=align(types[i]), width=column_size[i])
+        line += '{val: {align}{width}}'.format(
+            val=row[i],
+            align=align(types[i]),
+            width=column_size[i]
+        )
     return line
 
 

@@ -12,9 +12,9 @@ import click
 import json
 import requests
 
+from flowserv.model.parameter.string import PARA_STRING
 from robclient.table import ResultTable
 
-import flowserv.model.parameter.declaration as pd
 import robclient.config as config
 
 
@@ -33,7 +33,7 @@ def list(ctx):
         if ctx.obj['RAW']:
             click.echo(json.dumps(body, indent=4))
         else:
-            table = ResultTable(['Name', 'ID'], [pd.DT_STRING, pd.DT_STRING])
+            table = ResultTable(['Name', 'ID'], [PARA_STRING, PARA_STRING])
             for user in body['users']:
                 table.add([user['username'], user['id']])
             for line in table.format():

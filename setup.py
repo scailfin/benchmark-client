@@ -14,11 +14,11 @@ from setuptools import setup, find_packages
 
 """Required packages for install, test, docs, and tests."""
 
-install_requires=[
+install_requires = [
     'future',
     'Click',
     'requests',
-    'flowserv-core>=0.1.0'
+    'flowserv-core>=0.2.0'
 ]
 
 
@@ -39,13 +39,13 @@ extras_require = {
 }
 
 
-# Get the version string from the version.py file in the robflask package. Based
-# on:
-# https://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+# Get the version string from the version.py file in the robflask package.
+# Based on:
+# https://stackoverflow.com/questions/458550
 with open(os.path.join('robclient', 'version.py'), 'rt') as f:
     filecontent = f.read()
 match = re.search(r"^__version__\s*=\s*['\"]([^'\"]*)['\"]", filecontent, re.M)
-if not match is None:
+if match is not None:
     version = match.group(1)
 else:
     raise RuntimeError('unable to find version string in %s.' % (filecontent,))
