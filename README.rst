@@ -2,7 +2,7 @@
    :target: https://github.com/scailfin/rob-client/blob/master/LICENSE
 
 
-.. figure:: https://github.com/scailfin/rob-client/blob/flowserv/docs/graphics/header-client.png
+.. figure:: https://github.com/scailfin/rob-client/raw/master/docs/graphics/header-client.png
   :align: center
   :alt: ROB Command Line Interface
 
@@ -12,6 +12,8 @@ About
 =====
 
 The **Reproducible Benchmark Client** is the command line user interface for the *Reproducible Open Benchmarks for Data Analysis Platform (ROB)*. The command line interface interacts with a ROB Web API to create, access, and manipulate users, benchmark submissions and benchmark runs.
+
+**NOTE**: The `rob` client command line interface has now been integrated with the `flowserv` command line interface in the [flowserv-core repository](https://github.com/scailfin/flowserv-core). This repository is *depreciated* and is **no longer mainatined**.
 
 
 Installation and Configuration
